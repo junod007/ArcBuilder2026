@@ -6,121 +6,90 @@ Build and deploy a simple Voting smart contract on Arc Testnet using Solidity an
 
 ## Smart Contract
 
-The Voting.sol contract contains:
+The `Voting.sol` contract contains:
 
 - 3 candidates:
   - Alice
   - Bob
   - Charlie
-- Each wallet can vote only once.
-- Vote counts are stored on-chain.
-- Candidate information can be queried.
-- Voting status can be checked using hasVoted.
-
-## Contract Functions
-
-### vote(uint256 candidateIndex)
-
-Allows a wallet to vote for a candidate.
-
-Candidate indexes:
-
-- 0 = Alice
-- 1 = Bob
-- 2 = Charlie
-
-A wallet can only vote once.
-
-### getCandidateCount()
-
-Returns the total number of candidates.
-
-Expected result: 3
-
-### getCandidate(uint256 candidateIndex)
-
-Returns the candidate name and vote count.
-
-Example results after testing:
-
-- Candidate 0: Alice — 1 vote
-- Candidate 1: Bob — 0 votes
-- Candidate 2: Charlie — 0 votes
-
-### hasVoted(address)
-
-Checks whether a wallet has already voted.
-
-After voting, the connected wallet returned: true
+- Vote counting
+- Prevention of double voting
+- Candidate lookup
+- Vote status verification
 
 ## Deployment
 
-The contract was compiled successfully using Remix IDE and deployed to Arc Network Testnet.
+The Voting smart contract was compiled and deployed successfully to **Arc Testnet** using Remix IDE.
 
-The deployment transaction was successfully mined and executed.
+### 1. Compile Contract
 
-## Testing
+![Compile](screenshot/01-compile.png)
 
-The following tests were performed.
+### 2. Deploy Contract
 
-### 1. Check Candidate Count
+![Deploy](screenshot/02-deploy.png)
 
-Called getCandidateCount().
+## Candidate Verification
 
-Result: 3
+### 3. Candidate Count
 
-### 2. Check Alice
+The contract returns **3 candidates**.
 
-Called getCandidate(0).
+![Candidate Count](screenshot/03-candidate-count.png)
 
-Initial result: Alice — 0 votes.
+### 4. Alice
 
-After voting: Alice — 1 vote.
+![Alice](screenshot/04-alice.png)
 
-### 3. Check Bob
+### 5. Bob
 
-Called getCandidate(1).
+![Bob](screenshot/05-bob.png)
 
-Result: Bob — 0 votes.
+### 6. Charlie
 
-### 4. Check Charlie
+![Charlie](screenshot/06-charlie.png)
 
-Called getCandidate(2).
+## Voting
 
-Result: Charlie — 0 votes.
+### 7. Vote for Alice
 
-### 5. Vote for Alice
+A vote was successfully submitted for Alice.
 
-Called vote(0).
+![Vote Alice](screenshot/07-vote-alice.png)
 
-The transaction was successfully mined and executed.
+### 8. Verify Vote Count
 
-Result: Alice — 1 vote.
+The candidate data was queried again after voting.
 
-### 6. Check Voting Status
+![Verify Vote](screenshot/08-verify-vote.png)
 
-Called hasVoted(address).
+### 9. Verify Voting Status
 
-Result: true
+The `hasVoted` function confirms that the wallet address has already voted.
 
-This confirms that the connected wallet has already voted.
+![Has Voted](screenshot/09-hasvoted.png)
 
 ## Result
 
 The Voting smart contract was successfully:
 
-- Written in Solidity
-- Compiled in Remix IDE
-- Deployed to Arc Testnet
-- Queried successfully
-- Tested with on-chain transactions
-- Verified through candidate vote counts
-- Verified using the hasVoted function
+- Compiled with Solidity
+- Deployed on Arc Testnet
+- Tested with 3 candidates
+- Used to cast a vote
+- Verified through contract read functions
 
-## Conclusion
+## Network
 
-Day 04 successfully demonstrates a basic on-chain voting system using a Solidity smart contract on Arc Testnet.
+**Arc Testnet**
 
-The contract successfully records votes and prevents the same wallet from voting more than once.
+## Tools
+
+- Solidity
+- Remix IDE
+- Arc Testnet
+- Rabby Wallet
+
+
 
 
