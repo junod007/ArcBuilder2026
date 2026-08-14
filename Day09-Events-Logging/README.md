@@ -2,27 +2,15 @@
 
 ## 📌 Overview
 
-Pada Day 09, saya mempelajari bagaimana Smart Contract menggunakan
-Event untuk mencatat aktivitas transaksi di blockchain.
+Pada Day 09, saya mempelajari bagaimana Smart Contract menggunakan **Event** untuk mencatat aktivitas yang terjadi di blockchain.
+
+Event berguna untuk memberikan informasi kepada aplikasi, frontend, atau pengguna ketika sebuah transaksi atau perubahan data terjadi di dalam Smart Contract.
+
+---
 
 ## 📜 Smart Contract
 
 Contract yang dibuat:
 
+```text
 DidonLogger.sol
-
-Fitur:
-
-- Menyimpan pesan
-- Mengubah pesan menggunakan `setMessage()`
-- Mengirim Event `MessageUpdated`
-- Membaca pesan menggunakan `getMessage()`
-
-## 🔔 Event
-
-```solidity
-event MessageUpdated(
-    address indexed user,
-    string message,
-    uint256 timestamp
-);
