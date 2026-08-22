@@ -2,11 +2,11 @@
 
 ## Overview
 
-ArcSubscription is a simple smart contract that manages blockchain-based subscriptions.
+ArcSubscription is a simple smart contract for managing blockchain-based subscriptions.
 
 Users can pay a subscription fee to activate access for a specified period. After the subscription expires, users can renew it by paying the subscription fee again.
 
-The contract keeps track of each user's subscription status and expiration time directly on-chain.
+The contract stores each user's subscription status and expiration time directly on-chain.
 
 ---
 
@@ -20,7 +20,7 @@ The contract keeps track of each user's subscription status and expiration time 
 - Subscription renewal
 - Remaining subscription time checker
 - Owner-only configuration controls
-- Owner withdrawal function
+- Owner-only withdrawal function
 - Events for subscription activity
 
 ---
