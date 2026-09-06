@@ -1,0 +1,12 @@
+{
+  "name": "AOKAH Arc AI Agent",
+  "description": "AI agent registered on Arc Testnet using ERC-8004.",
+  "image": "ipfs://bafkreibdi6623n3xpf7ymk62ckb4bo75o3qemwkpfvp5i25j66itxvsoei",
+  "agent_type": "general",
+  "capabilities": [
+    "onchain_identity",
+    "reputation_tracking",
+    "validation"
+  ],
+  "version": "1.0.0"
+}
