@@ -1,0 +1,188 @@
+import {
+  createPublicClient,
+  createWalletClient,
+  custom,
+  http,
+  defineChain,
+} from "viem";
+
+const ARC_TESTNET = defineChain({
+  id: 5042002,
+  name: "Arc Testnet",
+  nativeCurrency: {
+    name: "USDC",
+    symbol: "USDC",
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://rpc.testnet.arc.network"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "ArcScan",
+      url: "https://testnet.arcscan.app",
+    },
+  },
+  testnet: true,
+});
+
+const connectButton = document.getElementById(
+  "connectButton",
+) as HTMLButtonElement;
+
+const executeButton = document.getElementById(
+  "executeButton",
+) as HTMLButtonElement;
+
+const paymentMode = document.getElementById(
+  "paymentMode",
+) as HTMLSelectElement;
+
+const recipientInput = document.getElementById(
+  "recipient",
+) as HTMLInputElement;
+
+const amountInput = document.getElementById(
+  "amount",
+) as HTMLInputElement;
+
+const status = document.getElementById(
+  "status",
+) as HTMLElement;
+
+let connectedAddress: `0x${string}` | undefined;
+
+function setStatus(message: string) {
+  status.textContent = message;
+}
+
+connectButton.addEventListener("click", async () => {
+  try {
+    const ethereum = (window as any).ethereum;
+
+    if (!ethereum) {
+      throw new Error(
+        "MetaMask is not installed.",
+      );
+    }
+
+    setStatus(
+      "Connecting MetaMask...\n\n" +
+      "Checking Arc Testnet..."
+    );
+
+    const accounts = await ethereum.request({
+      method: "eth_requestAccounts",
+    });
+
+    connectedAddress =
+      accounts[0] as `0x${string}`;
+
+    const chainId =
+      await ethereum.request({
+        method: "eth_chainId",
+      });
+
+    if (chainId !== "0x4cef52") {
+      throw new Error(
+        "Please switch MetaMask to Arc Testnet (Chain ID 5042002).",
+      );
+    }
+
+    connectButton.textContent =
+      "Connected: MetaMask";
+
+    executeButton.disabled = false;
+
+    setStatus(
+      "ArcFlow Connected\n\n" +
+      `Wallet: ${connectedAddress}\n` +
+      "Network: Arc Testnet\n" +
+      "Chain ID: 5042002\n\n" +
+      "Agent: AOKAH Arc AI Agent\n" +
+      "Agent ID: 892242\n\n" +
+      `Payment Mode: ${paymentMode.value}\n\n` +
+      "Ready."
+    );
+
+  } catch (error) {
+    console.error(
+      "CONNECT ERROR:",
+      error,
+    );
+
+    setStatus(
+      `Connection failed:\n\n${
+        error instanceof Error
+          ? error.message
+          : String(error)
+      }`,
+    );
+  }
+});
+
+paymentMode.addEventListener(
+  "change",
+  () => {
+    setStatus(
+      "ArcFlow Mode Selected\n\n" +
+      `Mode: ${paymentMode.value}\n\n` +
+      "Transaction logic will be enabled after contract integration."
+    );
+  },
+);
+
+executeButton.addEventListener(
+  "click",
+  async () => {
+    try {
+      if (!connectedAddress) {
+        throw new Error(
+          "Connect MetaMask first.",
+        );
+      }
+
+      const recipient =
+        recipientInput.value.trim();
+
+      const amount =
+        amountInput.value.trim();
+
+      if (!recipient) {
+        throw new Error(
+          "Enter a recipient address.",
+        );
+      }
+
+      if (!amount || Number(amount) <= 0) {
+        throw new Error(
+          "Enter a valid USDC amount.",
+        );
+      }
+
+      setStatus(
+        "ArcFlow Execution Request\n\n" +
+        `Mode: ${paymentMode.value}\n` +
+        `Recipient: ${recipient}\n` +
+        `Amount: ${amount} USDC\n\n` +
+        "Contract integration pending."
+      );
+
+    } catch (error) {
+      console.error(
+        "EXECUTION ERROR:",
+        error,
+      );
+
+      setStatus(
+        `Execution failed:\n\n${
+          error instanceof Error
+            ? error.message
+            : String(error)
+        }`,
+      );
+    }
+  },
+);
