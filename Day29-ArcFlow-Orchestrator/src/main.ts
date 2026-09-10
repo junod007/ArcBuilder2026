@@ -64,7 +64,8 @@ const PAYMENT_AUTH_ABI = [
         type: "uint256",
       },
     ],
-  },
+    },
+  {
     type: "function",
     name: "getAuthorization",
     stateMutability: "view",
