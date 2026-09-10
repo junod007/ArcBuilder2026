@@ -4,6 +4,7 @@ import {
   custom,
   http,
   defineChain,
+  parseUnits,
 } from "viem";
 
 const ARC_TESTNET = defineChain({
@@ -43,7 +44,27 @@ const AGENT_WALLET =
 const AGENT_ID = 892242;
 
 const PAYMENT_AUTH_ABI = [
-  {
+    {
+    type: "function",
+    name: "createAuthorization",
+    stateMutability: "nonpayable",
+    inputs: [
+      {
+        name: "agent",
+        type: "address",
+      },
+      {
+        name: "limit",
+        type: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "authorizationId",
+        type: "uint256",
+      },
+    ],
+  },
     type: "function",
     name: "getAuthorization",
     stateMutability: "view",
@@ -97,6 +118,10 @@ const PAYMENT_AUTH_ABI = [
 
 const connectButton = document.getElementById(
   "connectButton",
+) as HTMLButtonElement;
+
+const createAuthButton = document.getElementById(
+  "createAuthButton",
 ) as HTMLButtonElement;
 
 const executeButton = document.getElementById(
@@ -156,6 +181,7 @@ connectButton.addEventListener("click", async () => {
 
     connectButton.textContent = "Connected: MetaMask";
     executeButton.disabled = false;
+    createAuthButton.disabled = false;
 
     setStatus(
       "ArcFlow Connected\n\n" +
@@ -175,6 +201,83 @@ connectButton.addEventListener("click", async () => {
         error instanceof Error ? error.message : String(error)
       }`,
     );
+  }
+});
+
+createAuthButton.addEventListener("click", async () => {
+  try {
+    const ethereum = (window as any).ethereum;
+
+    if (!ethereum || !connectedAddress) {
+      throw new Error("Connect MetaMask first.");
+    }
+
+    createAuthButton.disabled = true;
+
+    const walletClient = createWalletClient({
+      account: connectedAddress,
+      chain: ARC_TESTNET,
+      transport: custom(ethereum),
+    });
+
+    const limit = parseUnits("1", 6);
+
+    setStatus(
+      "Creating Day28 Authorization...\n\n" +
+      "Owner: " +
+      `${connectedAddress}\n\n` +
+      "Agent: " +
+      `${connectedAddress}\n\n` +
+      "Limit: 1 USDC\n\n" +
+      "Waiting for MetaMask approval...",
+    );
+
+    const txHash = await walletClient.writeContract({
+      address: AGENT_PAYMENT_AUTH_ADDRESS,
+      abi: PAYMENT_AUTH_ABI,
+      functionName: "createAuthorization",
+      args: [connectedAddress, limit],
+    });
+
+    setStatus(
+      "Authorization transaction submitted!\n\n" +
+      `TX:\n${txHash}\n\n` +
+      "Waiting for confirmation...",
+    );
+
+    const publicClient = createPublicClient({
+      chain: ARC_TESTNET,
+      transport: http(),
+    });
+
+    const receipt = await publicClient.waitForTransactionReceipt({
+      hash: txHash,
+    });
+
+    if (receipt.status !== "success") {
+      throw new Error("Authorization transaction reverted.");
+    }
+
+    setStatus(
+      "Day28 Authorization Created Successfully!\n\n" +
+      "Owner: " +
+      `${connectedAddress}\n\n` +
+      "Agent: " +
+      `${connectedAddress}\n\n` +
+      "Limit: 1 USDC\n\n" +
+      `TX:\n${txHash}\n\n` +
+      `https://testnet.arcscan.app/tx/${txHash}`,
+    );
+  } catch (error) {
+    console.error("AUTHORIZATION ERROR:", error);
+
+    setStatus(
+      `Authorization failed:\n\n${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  } finally {
+    createAuthButton.disabled = false;
   }
 });
 
