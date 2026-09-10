@@ -28,6 +28,73 @@ const ARC_TESTNET = defineChain({
   testnet: true,
 });
 
+const USDC_ADDRESS =
+  "0x3600000000000000000000000000000000000000" as `0x${string}`;
+
+const AGENT_ESCROW_ADDRESS =
+  "0xDf9E632a5CC8ED46dB4e5F893129056f489d4088" as `0x${string}`;
+
+const AGENT_PAYMENT_AUTH_ADDRESS =
+  "0x3beD780d808aB5048244ccD166520aA8aD7995D1" as `0x${string}`;
+
+const AGENT_WALLET =
+  "0x6dd76aa8b3d36cef43df4520fa458fbd3b7cd33e" as `0x${string}`;
+
+const AGENT_ID = 892242;
+
+const PAYMENT_AUTH_ABI = [
+  {
+    type: "function",
+    name: "getAuthorization",
+    stateMutability: "view",
+    inputs: [
+      {
+        name: "authorizationId",
+        type: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "owner",
+        type: "address",
+      },
+      {
+        name: "agent",
+        type: "address",
+      },
+      {
+        name: "limit",
+        type: "uint256",
+      },
+      {
+        name: "spent",
+        type: "uint256",
+      },
+      {
+        name: "active",
+        type: "bool",
+      },
+    ],
+  },
+  {
+    type: "function",
+    name: "remainingAllowance",
+    stateMutability: "view",
+    inputs: [
+      {
+        name: "authorizationId",
+        type: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+      },
+    ],
+  },
+] as const;
+
 const connectButton = document.getElementById(
   "connectButton",
 ) as HTMLButtonElement;
@@ -63,27 +130,23 @@ connectButton.addEventListener("click", async () => {
     const ethereum = (window as any).ethereum;
 
     if (!ethereum) {
-      throw new Error(
-        "MetaMask is not installed.",
-      );
+      throw new Error("MetaMask is not installed.");
     }
 
     setStatus(
       "Connecting MetaMask...\n\n" +
-      "Checking Arc Testnet..."
+      "Checking Arc Testnet...",
     );
 
     const accounts = await ethereum.request({
       method: "eth_requestAccounts",
     });
 
-    connectedAddress =
-      accounts[0] as `0x${string}`;
+    connectedAddress = accounts[0] as `0x${string}`;
 
-    const chainId =
-      await ethereum.request({
-        method: "eth_chainId",
-      });
+    const chainId = await ethereum.request({
+      method: "eth_chainId",
+    });
 
     if (chainId !== "0x4cef52") {
       throw new Error(
@@ -91,9 +154,7 @@ connectButton.addEventListener("click", async () => {
       );
     }
 
-    connectButton.textContent =
-      "Connected: MetaMask";
-
+    connectButton.textContent = "Connected: MetaMask";
     executeButton.disabled = false;
 
     setStatus(
@@ -102,87 +163,108 @@ connectButton.addEventListener("click", async () => {
       "Network: Arc Testnet\n" +
       "Chain ID: 5042002\n\n" +
       "Agent: AOKAH Arc AI Agent\n" +
-      "Agent ID: 892242\n\n" +
+      `Agent ID: ${AGENT_ID}\n\n` +
       `Payment Mode: ${paymentMode.value}\n\n` +
-      "Ready."
+      "Ready.",
     );
-
   } catch (error) {
-    console.error(
-      "CONNECT ERROR:",
-      error,
-    );
+    console.error("CONNECT ERROR:", error);
 
     setStatus(
       `Connection failed:\n\n${
-        error instanceof Error
-          ? error.message
-          : String(error)
+        error instanceof Error ? error.message : String(error)
       }`,
     );
   }
 });
 
-paymentMode.addEventListener(
-  "change",
-  () => {
-    setStatus(
-      "ArcFlow Mode Selected\n\n" +
-      `Mode: ${paymentMode.value}\n\n` +
-      "Transaction logic will be enabled after contract integration."
-    );
-  },
-);
+paymentMode.addEventListener("change", () => {
+  setStatus(
+    "ArcFlow Mode Selected\n\n" +
+    `Mode: ${paymentMode.value}\n\n` +
+    "Day27 AgentEscrow:\n" +
+    `${AGENT_ESCROW_ADDRESS}\n\n` +
+    "Day28 AgentPaymentAuth:\n" +
+    `${AGENT_PAYMENT_AUTH_ADDRESS}\n\n` +
+    "Contract integration is being enabled step-by-step.",
+  );
+});
 
-executeButton.addEventListener(
-  "click",
-  async () => {
-    try {
-      if (!connectedAddress) {
-        throw new Error(
-          "Connect MetaMask first.",
-        );
-      }
-
-      const recipient =
-        recipientInput.value.trim();
-
-      const amount =
-        amountInput.value.trim();
-
-      if (!recipient) {
-        throw new Error(
-          "Enter a recipient address.",
-        );
-      }
-
-      if (!amount || Number(amount) <= 0) {
-        throw new Error(
-          "Enter a valid USDC amount.",
-        );
-      }
-
-      setStatus(
-        "ArcFlow Execution Request\n\n" +
-        `Mode: ${paymentMode.value}\n` +
-        `Recipient: ${recipient}\n` +
-        `Amount: ${amount} USDC\n\n` +
-        "Contract integration pending."
-      );
-
-    } catch (error) {
-      console.error(
-        "EXECUTION ERROR:",
-        error,
-      );
-
-      setStatus(
-        `Execution failed:\n\n${
-          error instanceof Error
-            ? error.message
-            : String(error)
-        }`,
-      );
+executeButton.addEventListener("click", async () => {
+  try {
+    if (!connectedAddress) {
+      throw new Error("Connect MetaMask first.");
     }
-  },
-);
+
+    const recipient = recipientInput.value.trim();
+    const amount = amountInput.value.trim();
+
+    if (!recipient) {
+      throw new Error("Enter a recipient address.");
+    }
+
+    if (!amount || Number(amount) <= 0) {
+      throw new Error("Enter a valid USDC amount.");
+    }
+
+    if (paymentMode.value === "authorized") {
+      const publicClient = createPublicClient({
+        chain: ARC_TESTNET,
+        transport: http(),
+      });
+
+      setStatus(
+        "Checking Day28 AgentPaymentAuth...\n\n" +
+        `Contract:\n${AGENT_PAYMENT_AUTH_ADDRESS}\n\n` +
+        "Read-only test.\n" +
+        "No USDC will be transferred.",
+      );
+
+      const authorizationId = 0n;
+
+      const authorization = await publicClient.readContract({
+        address: AGENT_PAYMENT_AUTH_ADDRESS,
+        abi: PAYMENT_AUTH_ABI,
+        functionName: "getAuthorization",
+        args: [authorizationId],
+      });
+
+      const remaining = await publicClient.readContract({
+        address: AGENT_PAYMENT_AUTH_ADDRESS,
+        abi: PAYMENT_AUTH_ABI,
+        functionName: "remainingAllowance",
+        args: [authorizationId],
+      });
+
+      setStatus(
+        "Day28 Authorization Read Successful\n\n" +
+        `Authorization ID: ${authorizationId}\n\n` +
+        `Owner: ${authorization[0]}\n` +
+        `Agent: ${authorization[1]}\n` +
+        `Limit: ${authorization[2].toString()}\n` +
+        `Spent: ${authorization[3].toString()}\n` +
+        `Active: ${authorization[4]}\n\n` +
+        `Remaining: ${remaining.toString()}\n\n` +
+        "No transaction was sent.",
+      );
+
+      return;
+    }
+
+    setStatus(
+      "ArcFlow Execution Request\n\n" +
+      `Mode: ${paymentMode.value}\n` +
+      `Recipient: ${recipient}\n` +
+      `Amount: ${amount} USDC\n\n` +
+      "This payment path has not been enabled yet.",
+    );
+  } catch (error) {
+    console.error("EXECUTION ERROR:", error);
+
+    setStatus(
+      `Execution failed:\n\n${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  }
+});
