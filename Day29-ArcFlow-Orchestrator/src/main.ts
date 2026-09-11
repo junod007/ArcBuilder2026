@@ -585,6 +585,93 @@ executeButton.addEventListener("click", async () => {
       return;
     }
 
+    if (paymentMode.value === "escrow") {
+      const ethereum = (window as any).ethereum;
+      if (!ethereum) throw new Error("MetaMask is not installed.");
+
+      const paymentAmount = parseUnits(amount, 6);
+      if (paymentAmount <= 0n) throw new Error("Escrow amount must be greater than zero.");
+
+      const escrowAbi = [
+        { type: "function", name: "nextJobId", stateMutability: "view", inputs: [], outputs: [{ name: "", type: "uint256" }] },
+        { type: "function", name: "createJob", stateMutability: "nonpayable", inputs: [{ name: "agent", type: "address" }, { name: "amount", type: "uint256" }], outputs: [{ name: "jobId", type: "uint256" }] },
+        { type: "function", name: "deposit", stateMutability: "nonpayable", inputs: [{ name: "jobId", type: "uint256" }], outputs: [] },
+        { type: "function", name: "getJob", stateMutability: "view", inputs: [{ name: "jobId", type: "uint256" }], outputs: [{ name: "client", type: "address" }, { name: "agent", type: "address" }, { name: "amount", type: "uint256" }, { name: "status", type: "uint8" }] },
+        { type: "function", name: "escrowBalance", stateMutability: "view", inputs: [], outputs: [{ name: "", type: "uint256" }] }
+      ] as const;
+
+      const erc20Abi = [
+        { type: "function", name: "approve", stateMutability: "nonpayable", inputs: [{ name: "spender", type: "address" }, { name: "amount", type: "uint256" }], outputs: [{ name: "", type: "bool" }] }
+      ] as const;
+
+      const walletClient = createWalletClient({ account: connectedAddress, chain: ARC_TESTNET, transport: custom(ethereum) });
+      const publicClient = createPublicClient({ chain: ARC_TESTNET, transport: http() });
+      const agent = AGENT_WALLET;
+
+      const jobId = await publicClient.readContract({
+        address: AGENT_ESCROW_ADDRESS,
+        abi: escrowAbi,
+        functionName: "nextJobId"
+      });
+
+      setStatus("Creating Escrow Job...");
+
+      const createTxHash = await walletClient.writeContract({
+        address: AGENT_ESCROW_ADDRESS,
+        abi: escrowAbi,
+        functionName: "createJob",
+        args: [agent, paymentAmount]
+      });
+      await publicClient.waitForTransactionReceipt({ hash: createTxHash });
+
+      setStatus("Approving USDC for Escrow...");
+
+      const approveTxHash = await walletClient.writeContract({
+        address: USDC_ADDRESS,
+        abi: erc20Abi,
+        functionName: "approve",
+        args: [AGENT_ESCROW_ADDRESS, paymentAmount]
+      });
+      await publicClient.waitForTransactionReceipt({ hash: approveTxHash });
+
+      setStatus("Depositing USDC into Escrow...");
+
+      const depositTxHash = await walletClient.writeContract({
+        address: AGENT_ESCROW_ADDRESS,
+        abi: escrowAbi,
+        functionName: "deposit",
+        args: [jobId]
+      });
+      await publicClient.waitForTransactionReceipt({ hash: depositTxHash });
+
+      const job = await publicClient.readContract({
+        address: AGENT_ESCROW_ADDRESS,
+        abi: escrowAbi,
+        functionName: "getJob",
+        args: [jobId]
+      });
+
+      const balance = await publicClient.readContract({
+        address: AGENT_ESCROW_ADDRESS,
+        abi: escrowAbi,
+        functionName: "escrowBalance"
+      });
+
+      setStatus(
+        "Escrow Deposit Successful!\\n\\n" +
+        `Job ID: ${jobId}\\n` +
+        `Client: ${job[0]}\\n` +
+        `Agent: ${job[1]}\\n` +
+        `Amount: ${job[2].toString()}\\n` +
+        `Status: ${job[3].toString()} (Funded)\\n` +
+        `Escrow Balance: ${balance.toString()}\\n\\n` +
+        `Create TX: ${createTxHash}\\n` +
+        `Deposit TX: ${depositTxHash}\\n` +
+        `https://testnet.arcscan.app/tx/${depositTxHash}`
+      );
+
+      return;
+    }
     setStatus(
       "ArcFlow Execution Request\n\n" +
       `Mode: ${paymentMode.value}\n` +
