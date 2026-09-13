@@ -19,7 +19,7 @@ contract ArcFlowPaymentIntent {
         uint256 createdAt;
         uint256 executedAt;
         Status status;
-        string reference;
+        string paymentReference;
     }
 
     uint256 public nextIntentId;
@@ -33,7 +33,7 @@ contract ArcFlowPaymentIntent {
         address asset,
         uint256 amount,
         address executor,
-        string reference
+        string paymentReference
     );
 
     event PaymentIntentExecuted(
@@ -52,7 +52,7 @@ contract ArcFlowPaymentIntent {
         address asset,
         uint256 amount,
         address executor,
-        string calldata reference
+        string calldata paymentReference
     ) external returns (uint256 intentId) {
         require(payee != address(0), "Invalid payee");
         require(asset != address(0), "Invalid asset");
@@ -70,7 +70,7 @@ contract ArcFlowPaymentIntent {
             createdAt: block.timestamp,
             executedAt: 0,
             status: Status.Pending,
-            reference: reference
+            paymentReference: paymentReference
         });
 
         nextIntentId++;
@@ -82,7 +82,7 @@ contract ArcFlowPaymentIntent {
             asset,
             amount,
             executor,
-            reference
+            paymentReference
         );
     }
 
@@ -93,9 +93,6 @@ contract ArcFlowPaymentIntent {
         require(intent.status == Status.Pending, "Intent not pending");
         require(msg.sender == intent.executor, "Not authorized executor");
 
-        intent.status = Status.Completed;
-        intent.executedAt = block.timestamp;
-
         bool success = IERC20(intent.asset).transferFrom(
             intent.payer,
             intent.payee,
@@ -103,6 +100,9 @@ contract ArcFlowPaymentIntent {
         );
 
         require(success, "Payment transfer failed");
+
+        intent.status = Status.Completed;
+        intent.executedAt = block.timestamp;
 
         emit PaymentIntentExecuted(
             intentId,
