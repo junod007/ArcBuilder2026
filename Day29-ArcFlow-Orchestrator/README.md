@@ -1,8 +1,14 @@
-# Day 29 – ArcFlow Orchestrator
+# Day 29 → Day 33 — ArcFlow Orchestrator
 
 ArcFlow is an agentic payment orchestration layer built on Arc Network.
 
-This project integrates the payment primitives developed in Day 26, Day 27, and Day 28:
+The project brings together the payment primitives developed throughout the ArcBuilder2026 journey and provides a unified interface for executing agent-driven payment workflows on Arc Testnet.
+
+## Project Evolution
+
+ArcFlow started as an orchestration concept in Day 29 and evolved into a working payment interface connected to Arc Testnet.
+
+The project integrates:
 
 - Arc Agent Pay
 - Arc Agent Escrow
@@ -10,8 +16,44 @@ This project integrates the payment primitives developed in Day 26, Day 27, and 
 
 ## Objective
 
-Create a unified interface for executing authorized USDC payment workflows for AI agents on Arc Testnet.
+Create a unified interface for AI-agent payment workflows on Arc Testnet, connecting:
 
-## Status
+**Frontend → Backend → Arc Testnet → Agent Payment Infrastructure**
 
-🚧 In development
+## Current Milestone
+
+### Day 33 — ArcFlow Orchestrator
+
+The ArcFlow interface is now running as a Vite + TypeScript application with:
+
+- MetaMask wallet connection
+- Arc Testnet integration
+- Agent identification
+- Authorized Agent Payment workflow
+- Escrow payment workflow
+- Direct payment workflow
+- ArcFlow backend connectivity
+- On-chain transaction handling
+- Transaction status reporting
+- ArcScan transaction references
+
+## Architecture
+
+```text
+User
+ │
+ ▼
+ArcFlow Orchestrator
+ │
+ ├── MetaMask
+ │
+ ├── Frontend
+ │
+ └── Backend
+       │
+       ▼
+   Arc Testnet
+       │
+       ├── Agent Payment Authorization
+       ├── Agent Escrow
+       └── Agent Payment

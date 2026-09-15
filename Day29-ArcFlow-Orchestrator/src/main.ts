@@ -5,6 +5,7 @@ import {
   http,
   defineChain,
   parseUnits,
+  formatUnits,
 } from "viem";
 
 const ARC_TESTNET = defineChain({
@@ -159,6 +160,10 @@ const connectButton = document.getElementById(
   "connectButton",
 ) as HTMLButtonElement;
 
+const backendTestButton = document.getElementById(
+  "backendTestButton",
+) as HTMLButtonElement;
+
 const createAuthButton = document.getElementById(
   "createAuthButton",
 ) as HTMLButtonElement;
@@ -192,6 +197,48 @@ function setStatus(message: string) {
   status.textContent = message;
 }
 
+
+async function testArcFlowBackend() {
+  
+try {
+    setStatus(
+      "Connecting to ArcFlow Backend...\n\n" +
+      "http://localhost:8787/run-arcflow"
+    );
+
+const response = await fetch("http://localhost:8787/run-arcflow", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        source: "ArcFlow Orchestrator",
+        day: 33,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Backend returned HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    setStatus(
+      "ArcFlow Backend Connected!\n\n" +
+      `Message: ${data.message}\n` +
+      `Timestamp: ${data.timestamp}\n\n` +
+      "Frontend → Backend: SUCCESS"
+    );
+  } catch (error) {
+    console.error("BACKEND ERROR:", error);
+
+    setStatus(
+      "Backend connection failed:\n\n" +
+      `${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+}
+backendTestButton.addEventListener("click", testArcFlowBackend);
 connectButton.addEventListener("click", async () => {
   try {
     const ethereum = (window as any).ethereum;
@@ -569,26 +616,29 @@ executeButton.addEventListener("click", async () => {
       });
 
       setStatus(
-        "Authorized Agent Payment Successful!\n\n" +
-        `Authorization ID: ${authorizationId}\n` +
-        `Recipient: ${recipient}\n` +
-        `Amount: ${amount} USDC\n\n` +
-        "Updated Authorization State\n\n" +
-        `Limit: ${updatedAuthorization[2].toString()}\n` +
-        `Spent: ${updatedAuthorization[3].toString()}\n` +
-        `Active: ${updatedAuthorization[4]}\n` +
-        `Remaining: ${updatedRemaining.toString()}\n\n` +
-        `TX:\n${txHash}\n\n` +
-        `https://testnet.arcscan.app/tx/${txHash}`,
-      );
+  "✓ PAYMENT SUCCESSFUL\n\n" +
+  "Authorized Agent Payment\n\n" +
+  `Authorization ID: ${authorizationId}\n` +
+  `Status: ${updatedAuthorization[4] ? "ACTIVE" : "INACTIVE"}\n\n` +
+  "Payment\n\n" +
+  `Recipient: ${recipient}\n` +
+  `Amount: ${amount} USDC\n\n` +
+  "Authorization State\n\n" +
+  `Limit: ${Number(formatUnits(updatedAuthorization[2], 6)).toFixed(2)} USDC\n` +
+  `Spent: ${Number(formatUnits(updatedAuthorization[3], 6)).toFixed(2)} USDC\n` +
+  `Remaining: ${Number(formatUnits(updatedRemaining, 6)).toFixed(2)} USDC\n\n` +
+  "Transaction\n\n" +
+  `${txHash}\n\n` +
+  `https://testnet.arcscan.app/tx/${txHash}`,
+);
 
-      return;
+return;
     }
 
     if (paymentMode.value === "escrow") {
       const ethereum = (window as any).ethereum;
       if (!ethereum) throw new Error("MetaMask is not installed.");
-
+	
       const paymentAmount = parseUnits(amount, 6);
       if (paymentAmount <= 0n) throw new Error("Escrow amount must be greater than zero.");
 
@@ -603,7 +653,6 @@ executeButton.addEventListener("click", async () => {
       const erc20Abi = [
         { type: "function", name: "approve", stateMutability: "nonpayable", inputs: [{ name: "spender", type: "address" }, { name: "amount", type: "uint256" }], outputs: [{ name: "", type: "bool" }] }
       ] as const;
-
       const walletClient = createWalletClient({ account: connectedAddress, chain: ARC_TESTNET, transport: custom(ethereum) });
       const publicClient = createPublicClient({ chain: ARC_TESTNET, transport: http() });
       const agent = AGENT_WALLET;
