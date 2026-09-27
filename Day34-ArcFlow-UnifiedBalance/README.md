@@ -1,45 +1,86 @@
-# Day 34 — ArcFlow Unified Balance
+\# Arc Builder — Day 34: Unified Balance
 
-## Objective
 
-Build a testnet proof-of-concept for cross-chain USDC payments using Circle Unified Balance Kit.
 
-## Concept
+A hands-on Arc Builder project exploring \*\*Circle Unified Balance\*\* with \*\*Circle App Kit\*\*, \*\*Viem\*\*, and \*\*MetaMask\*\*.
 
-Day 33 established the ArcFlow payment orchestration layer.
 
-Day 34 extends the concept toward a unified USDC balance:
 
-Frontend / Agent
-→ Unified Balance Kit
-→ Source USDC Balance
-→ Destination Chain
-→ USDC Recipient
+This project focuses on reading and displaying a wallet's unified USDC balance across supported testnet networks, including Arc Testnet.
 
-## Planned Flow
 
-1. Connect MetaMask
-2. Read unified USDC balance
-3. Display confirmed and pending balances
-4. Estimate the cost of a cross-chain spend
-5. Execute a small testnet USDC spend
-6. Verify the destination transaction
-7. Document the transaction evidence
 
-## Network
+\---
 
-- Arc Testnet
-- Base Sepolia
-- Testnet USDC only
 
-## Status
 
-🟡 In progress
+\## Overview
 
-Implementation and on-chain execution will be documented after the testnet flow is verified.
 
-## Safety
 
-No mainnet funds are used.
+Day 34 extends the Arc Builder journey into multichain balance aggregation.
 
-Transactions will only be executed after the route, balance, fee estimate, recipient, and transaction parameters are verified.
+
+
+Instead of checking a wallet balance on a single network, the application uses Circle Unified Balance to retrieve:
+
+
+
+\- Total confirmed USDC balance
+
+\- Depositor information
+
+\- Per-network USDC balance breakdown
+
+\- Supported testnet network data
+
+
+
+The current implementation is \*\*read-only\*\*. No USDC is deposited, transferred, or spent by this application.
+
+
+
+\---
+
+
+
+\## Architecture
+
+
+
+```text
+
+MetaMask
+
+&#x20;  │
+
+&#x20;  ▼
+
+EIP-1193 Provider
+
+&#x20;  │
+
+&#x20;  ▼
+
+Viem Adapter
+
+&#x20;  │
+
+&#x20;  ▼
+
+Circle App Kit
+
+&#x20;  │
+
+&#x20;  ▼
+
+Unified Balance
+
+&#x20;  │
+
+&#x20;  ├── Total USDC Balance
+
+&#x20;  │
+
+&#x20;  └── Per-Chain Breakdown
+
